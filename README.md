@@ -36,6 +36,12 @@ Hall effect sensor / Encoder input
 1. download and install the [STM32CubeIDE](https://www.st.com/en/development-tools/stm32cubeide.html) from ST Microelectronics
 2. 
 
+Setup the development environment  
+
+```sh
+make tools
+```
+
 
 ## Reccomended Motors
 

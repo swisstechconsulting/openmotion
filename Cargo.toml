@@ -1,0 +1,42 @@
+[package]
+name = "openmotion"
+version = "0.1.0"
+edition = "2021"
+authors = [
+    "Patrick Glass <patrickglass@gmail.com>",
+]
+
+[[bin]]
+name = "STM32H743VGTx"
+path = "src/thumbv6m-none-eabi/STM32H743VGTx.rs"
+required-features = ["STM32H743VGTx"]
+
+[[bin]]
+name = "STM32G431VBx3"
+path = "src/thumbv6m-none-eabi/STM32G431VBx3.rs"
+required-features = ["STM32G431VBx3"]
+
+[features]
+STM32H743VGTx = ["cortex-m", "cortex-m-rt"]
+STM32G431VBx3 = ["cortex-m", "cortex-m-rt"]
+
+[dependencies]
+
+rtt-target = { version = "0.4" }
+heapless = { version = "0.7.9", default-features = false }
+
+cortex-m = { version = "0.7.7", features = [
+    "critical-section-single-core",
+    "inline-asm",
+], optional = true }
+cortex-m-mc = { version = "0.7.7", optional = true, package = "cortex-m" }
+cortex-m-rt = { version = "0.7.3", optional = true }
+
+[profile.dev]
+codegen-units = 1 # better optimizations and easier ELF to debug the debugger
+debug = true      # default is `false`; using `true` is also OK as the symbols reside on the host platform, not the target
+lto = false       # Link Time Optimizations
+
+[profile.release]
+# debug = true # default is `false`; using `true` is also OK as the symbols reside on the host platform, not the target
+# lto = false       # Link Time Optimizations
