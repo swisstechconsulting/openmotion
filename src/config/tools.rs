@@ -7,6 +7,7 @@ enum Unit {
     MetersPerMinute,
 }
 
+#[derive(Debug)]
 struct Dimention {
     value: u32,
     unit: Unit,
@@ -17,7 +18,7 @@ impl Dimention {
         Dimention { value: degrees, unit: Unit.Degrees }
     }
 
-    fn length(value: u32, unit: Unit.Degrees) -> u8 {
+    fn length(value: u32, unit: Unit::Degrees) -> u8 {
         Dimention { value: degrees, unit: Unit.Degrees }
     }
 
@@ -25,9 +26,10 @@ impl Dimention {
         self.value
     }
     
-    fn angle()
+    // fn angle()
 }
 
+#[derive(Debug)]
 struct AngleDimention {
     degrees: int32,
 }
@@ -74,20 +76,21 @@ enum HolderSize {
     HSK100A,
 }
 
+#[derive(Debug)]
 struct ToolHolder {
     description: String,
     product_id: String,
     link: String,
     vendor: String,
-    type: enum HolderSize {
-
+    type: HolderSize,
 }
 
+#[derive(Debug)]
 struct ShaftSlice {
     index: u32,
     upper_diameter: Dimention,
     lower_diameter: Dimention,
-}
+};
 
 enum Coolant {
     Disabled,
@@ -101,6 +104,7 @@ enum Coolant {
     FloodAndThroughTool,
 }
 
+#[derive(Debug)]
 struct Tool {
     // General
     description: String,
@@ -109,7 +113,7 @@ struct Tool {
     product_link: String,
     
     // Cutter
-    type: MillType,
+    mill_type: MillType,
     num_flutes: u8,
     is_clockwise: bool,
 
@@ -127,7 +131,7 @@ struct Tool {
     shaft: Vec<ShaftSlice>,
 
     // Holder
-    holder: ToolHolder
+    holder: ToolHolder,
 
     // Cutting Data
     /// Speed
@@ -142,7 +146,7 @@ struct Tool {
     transition_feedrate_mm_min: u32,
     ramp_feedrate: u32,
     /// Vertical Feedrates
-    plunge_feedrate: u32.
+    plunge_feedrate: u32,
     plunge_feed_per_revolution_mm: u32,
     coolant: Coolant,
 }

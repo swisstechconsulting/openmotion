@@ -1,15 +1,17 @@
-CHIP_NAME?=STM32H743VGTx
+# CHIP_NAME?=STM32H743VGTx
+CHIP_NAME?=STM32F407VGTx
 
 default: lint test build
 
 lint:
 	cargo fmt
+	cargo clippy
 
 test:
 	cargo test
 
 build:
-	cargo build --features=stm32h743v,rt
+	cargo build --release
 
 run: flash
 
@@ -20,6 +22,7 @@ flash: probe-target/STM32F4_Series.yaml probe-target/STM32F4_Series.yaml
 .PHONY: tools
 tools: init
 	rustup update
+	rustup component add clippy
 	rustup component add llvm-tools-preview
 	rustup target add thumbv7em-none-eabihf
 	cargo install probe-rs --features cli
