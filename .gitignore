@@ -55,3 +55,6 @@ dkms.conf
 
 # Misc
 .DS_Store
+OpenMotionMotorDriver-backups/
+\#auto_saved_files\#
+_autosave-*
