@@ -14,67 +14,62 @@
 // KIND, either express or implied.  See the License for the
 // specific language governing permissions and limitations
 // under the License.
-// #![deny(unsafe_code)]
+#![deny(unsafe_code)]
+#![deny(warnings)]
 #![no_main]
 #![no_std]
-
-// extern crate cortex_m_rt as rt;
+extern crate cortex_m_rt;
 extern crate panic_halt;
-// use rt::entry;
 
-use core::num::Wrapping;
-use core::usize;
-use heapless::Vec;
-use rtt_target::{rprintln, rtt_init, set_print_channel};
-
-use cortex_m;
 use cortex_m_rt::entry;
-use embedded_hal::digital::v2::OutputPin;
-use stm32f4xx_hal::{delay::Delay, pac, prelude::*};
 
-// This marks the entrypoint of our application. The cortex_m_rt creates some
-// startup code before this, but we don't need to worry about this
+// use core::num::Wrapping;
+// use core::usize;
+// use heapless::Vec;
+use rtt_target::rprintln;
+
+// https://docs.rs/stm32f4xx-hal/latest/stm32f4xx_hal/gpio/index.html
+use stm32f4xx_hal::{pac, prelude::*};
+
 #[entry]
 fn main() -> ! {
-    // Get handles to the hardware objects. These functions can only be called
-    // once, so that the borrowchecker can ensure you don't reconfigure
-    // something by accident.
-    let dp = pac::Peripherals::take().unwrap();
-    let cp = cortex_m::Peripherals::take().unwrap();
+    // https://docs.rs/svd2rust/0.24.1/svd2rust/#peripheral-api
+    // let core = cortex_m::Peripherals::take().unwrap();
+    let peripherals = pac::Peripherals::take().unwrap();
 
-    // GPIO pins on the STM32F1 must be driven by the APB2 peripheral clock.
-    // This must be enabled first. The HAL provides some abstractions for
-    // us: First get a handle to the RCC peripheral:
-    let mut rcc = dp.RCC.constrain();
-    // Now we have access to the RCC's registers. The GPIOC can be enabled in
-    // RCC_APB2ENR (Prog. Ref. Manual 8.3.7), therefore we must pass this
-    // register to the `split` function.
-    let mut gpioc = dp.GPIOC.split(&mut rcc.apb2);
-    // This gives us an exclusive handle to the GPIOC peripheral. To get the
-    // handle to a single pin, we need to configure the pin first. Pin C13
-    // is usually connected to the Bluepills onboard LED.
-    let mut led = gpioc.pc13.into_push_pull_output(&mut gpioc.crh);
+    // Configure Reset and Clock Control (RCC)
+    let rcc = peripherals.RCC.constrain();
+    // Use HSE (High Speed External) clock source
+    // Configure the clock source and frequency to 168MHz
+    let clocks = rcc
+        .cfgr
+        .use_hse(8.MHz())
+        .sysclk(168.MHz())
+        .pclk1(24.MHz())
+        .i2s_clk(86.MHz())
+        .freeze();
 
-    // Now we need a delay object. The delay is of course depending on the clock
-    // frequency of the microcontroller, so we need to fix the frequency
-    // first. The system frequency is set via the FLASH_ACR register, so we
-    // need to get a handle to the FLASH peripheral first:
-    let mut flash = dp.FLASH.constrain();
-    // Now we can set the controllers frequency to 8 MHz:
-    let clocks = rcc.cfgr.sysclk(8.mhz()).freeze(&mut flash.acr);
-    // The `clocks` handle ensures that the clocks are now configured and gives
-    // the `Delay::new` function access to the configured frequency. With
-    // this information it can later calculate how many cycles it has to
-    // wait. The function also consumes the System Timer peripheral, so that no
-    // other function can access it. Otherwise the timer could be reset during a
-    // delay.
-    let mut delay = Delay::new(cp.SYST, clocks);
+    // Configure General Purpose Input Output (GPIO) for LEDs
+    let gpioa = peripherals.GPIOA.split();
+    // LED4: PD12 Green
+    // LED3: PD13 Orange
+    // LED5: PD14 Red
+    // LED6: PD15 Blue
+    let mut led = gpioa.pa15.into_push_pull_output();
 
-    // Now, enjoy the lightshow!
+    // Configure Timers
+    let mut delay = peripherals.TIM2.delay_ms(&clocks);
+
+    // Configure Real Time Transfer (RTT)
+    rtt_target::rtt_init!();
+
+    rprintln!("Hello Patrick\n");
+    // Main Loop
     loop {
-        led.set_high().ok();
+        rprintln!(".");
+        led.set_high();
         delay.delay_ms(1_000_u16);
-        led.set_low().ok();
+        led.set_low();
         delay.delay_ms(1_000_u16);
     }
 }

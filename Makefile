@@ -1,45 +1,65 @@
-# CHIP_NAME?=STM32H743VGTx
 CHIP_NAME?=STM32F407VGTx
+TARGET?=thumbv7em-none-eabihf
+TOOLS_BIN=tools/cargo/bin
+BINARY=openmotion
 
 default: lint test build
 
+.PHONY: lint
 lint:
 	cargo fmt
 	cargo clippy
 
+.PHONY: test
 test:
-	cargo test
+	cargo test --target $(TARGET)
 
+.PHONY: build
 build:
+	cargo build --release --target $(TARGET)
 	cargo build --release
 
-run: flash
+.PHONY: run
+run: $(TOOLS_BIN)/probe-rs
+	cargo readobj --bin $(BINARY) -- --file-headers
+	cargo size --bin $(BINARY) --release -- -A
+	@echo "Flashing into RAM (debug build)"
+	cargo flash --chip "${CHIP_NAME}"
+
+.PHOZNy: debug
+debug:
+	# https://docs.rust-embedded.org/book/intro/install/macos.html
+	# openocd -f interface/stlink.cfg -f target/stm32f4x.cfg
+	# brew install openocd
+	# brew install qemu
+	openocd -f interface/stlink.cfg -f target/stm32f4x.cfg
 
 .PHONY: flash
-flash: probe-target/STM32F4_Series.yaml probe-target/STM32F4_Series.yaml
-	cargo flash --release --chip ${CHIP_NAME}
+flash: probe-target/STM32F4_Series.yaml $(TOOLS_BIN)/probe-rs
+	@echo "Flashing into Flash (release build)"
+	cargo flash --release --chip "${CHIP_NAME}"
 
 .PHONY: tools
-tools: init
+tools: $(TOOLS_BIN)/probe-rs
 	rustup update
+	rustup component add rustfmt
 	rustup component add clippy
-	rustup component add llvm-tools-preview
-	rustup target add thumbv7em-none-eabihf
-	cargo install probe-rs --features cli
-
+	
 tools/cargo/%:
-	cargo install --root tools/cargo $(@F)
+	cargo install --root tools/cargo "$(@F)"
 
-probe-target/STM32F4_Series.yaml: tools/cargo/bin/target-gen
+$(TOOLS_BIN)/probe-rs: $(TOOLS_BIN)/cargo-binutils $(TOOLS_BIN)/cargo-expand
+	rustup component add llvm-tools-preview
+	rustup target add $(TARGET)
+	# cargo install --root tools/cargo cargo-binutils cargo-embed cargo-flash cargo-expand
+	cargo install --root tools/cargo "$(@F)" --features cli
+
+probe-target/%_Series.yaml: $(TOOLS_BIN)/target-gen
 	@mkdir -p $(@D)
-	cargo install probe-rs target-gen
-	./tools/cargo/bin/target-gen arm -f STM32F4 $(@D)
-
-probe-target/STM32G4_Series.yaml: tools/cargo/bin/target-gen
-	./tools/cargo/bin/target-gen arm -f STM32G4 $(@D)
+	$(TOOLS_BIN)/target-gen arm -f "$*" "$(@D)"
 
 .PHONY: clean
 clean:
 	cargo clean
-	rm -rf tools/cargo probe-target/*.yaml
+	rm -rf $(TOOLS_BIN) probe-target/*.yaml
 
