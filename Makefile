@@ -21,10 +21,8 @@ build:
 
 .PHONY: run
 run: $(TOOLS_BIN)/probe-rs
-	cargo readobj --bin $(BINARY) -- --file-headers
-	cargo size --bin $(BINARY) --release -- -A
 	@echo "Flashing into RAM (debug build)"
-	cargo flash --chip "${CHIP_NAME}"
+	cargo embed --chip "${CHIP_NAME}"
 
 .PHOZNy: debug
 debug:
@@ -35,7 +33,9 @@ debug:
 	openocd -f interface/stlink.cfg -f target/stm32f4x.cfg
 
 .PHONY: flash
-flash: probe-target/STM32F4_Series.yaml $(TOOLS_BIN)/probe-rs
+flash: $(TOOLS_BIN)/probe-rs $(TOOLS_BIN)/cargo-binutils
+	cargo readobj --bin $(BINARY) -- --file-headers
+	cargo size --bin $(BINARY) --release -- -A
 	@echo "Flashing into Flash (release build)"
 	cargo flash --release --chip "${CHIP_NAME}"
 
@@ -51,9 +51,9 @@ tools/cargo/%:
 $(TOOLS_BIN)/probe-rs: $(TOOLS_BIN)/cargo-binutils $(TOOLS_BIN)/cargo-expand
 	rustup component add llvm-tools-preview
 	rustup target add $(TARGET)
-	# cargo install --root tools/cargo cargo-binutils cargo-embed cargo-flash cargo-expand
 	cargo install --root tools/cargo "$(@F)" --features cli
 
+# probe-target/STM32F4_Series.yaml
 probe-target/%_Series.yaml: $(TOOLS_BIN)/target-gen
 	@mkdir -p $(@D)
 	$(TOOLS_BIN)/target-gen arm -f "$*" "$(@D)"

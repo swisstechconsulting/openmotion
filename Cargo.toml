@@ -5,13 +5,12 @@ edition = "2021"
 authors = ["Patrick Glass <patrickglass@gmail.com>"]
 
 [dependencies]
-rtt-target = { version = "0.4" }
+rtt-target = "0.4.0"
 heapless = { version = "0.7.16", default-features = false }
 cortex-m = { version = "0.7.7", features = ["critical-section-single-core", "inline-asm"] }
 cortex-m-rt = "0.7.3"
-embedded-hal = "^0.2.7"
-panic-halt = "^0.2.0"
-stm32f4xx-hal = { version = "0.17.1", features = ["stm32f407"] }
+panic-halt = "0.2.0"
+stm32f4xx-hal = { version = "0.17.1", features = ["stm32f407", "rt"] }
 
 [dev-dependencies]
 pretty_assertions = "1"

@@ -14,31 +14,46 @@
 // KIND, either express or implied.  See the License for the
 // specific language governing permissions and limitations
 // under the License.
-#![deny(unsafe_code)]
+// #![deny(unsafe_code)]
 #![deny(warnings)]
 #![no_main]
 #![no_std]
-extern crate cortex_m_rt;
-extern crate panic_halt;
-
-use cortex_m_rt::entry;
 
 // use core::num::Wrapping;
 // use core::usize;
 // use heapless::Vec;
-use rtt_target::rprintln;
+use rtt_target::{rprintln, rtt_init_print};
 
 // https://docs.rs/stm32f4xx-hal/latest/stm32f4xx_hal/gpio/index.html
 use stm32f4xx_hal::{pac, prelude::*};
 
-#[entry]
+mod panic_led;
+
+#[cortex_m_rt::entry]
 fn main() -> ! {
+    let delay_loops = 20_000;
+
+    // Configure Real Time Transfer (RTT) only in Debug mode
+    rtt_init_print!();
+
     // https://docs.rs/svd2rust/0.24.1/svd2rust/#peripheral-api
     // let core = cortex_m::Peripherals::take().unwrap();
-    let peripherals = pac::Peripherals::take().unwrap();
+    let device = pac::Peripherals::take().unwrap();
+
+    // Configure General Purpose Input Output (GPIO) for LEDs
+    rprintln!("Configure GPIOs");
+    let gpiod = device.GPIOD.split();
+
+    let mut led_green = gpiod.pd12.into_push_pull_output();
+    let mut led_orange = gpiod.pd13.into_push_pull_output();
+    let mut led_red = gpiod.pd14.into_push_pull_output();
+    let mut led_blue = gpiod.pd15.into_push_pull_output();
+    led_green.set_high();
 
     // Configure Reset and Clock Control (RCC)
-    let rcc = peripherals.RCC.constrain();
+    rprintln!("Configure Reset and Clock Control");
+    let rcc = device.RCC.constrain();
+    led_orange.set_high();
     // Use HSE (High Speed External) clock source
     // Configure the clock source and frequency to 168MHz
     let clocks = rcc
@@ -46,30 +61,63 @@ fn main() -> ! {
         .use_hse(8.MHz())
         .sysclk(168.MHz())
         .pclk1(24.MHz())
-        .i2s_clk(86.MHz())
+        .pclk2(24.MHz())
         .freeze();
 
-    // Configure General Purpose Input Output (GPIO) for LEDs
-    let gpioa = peripherals.GPIOA.split();
-    // LED4: PD12 Green
-    // LED3: PD13 Orange
-    // LED5: PD14 Red
-    // LED6: PD15 Blue
-    let mut led = gpioa.pa15.into_push_pull_output();
+    led_red.set_high();
 
     // Configure Timers
-    let mut delay = peripherals.TIM2.delay_ms(&clocks);
+    rprintln!("Configure Timers");
+    let mut delay = device.TIM5.delay_us(&clocks);
 
-    // Configure Real Time Transfer (RTT)
-    rtt_target::rtt_init!();
+    rprintln!("Hello Patrick");
+    led_green.set_low();
+    led_orange.set_low();
+    led_red.set_low();
+    led_blue.set_low();
 
-    rprintln!("Hello Patrick\n");
     // Main Loop
+    rprintln!("Start Infinite Loop");
     loop {
         rprintln!(".");
-        led.set_high();
-        delay.delay_ms(1_000_u16);
-        led.set_low();
-        delay.delay_ms(1_000_u16);
+        led_green.toggle();
+        delay.delay(1.secs());
+
+        for _ in 0..delay_loops {
+            led_green.set_high();
+        }
+
+        for _ in 0..delay_loops {
+            led_green.set_low();
+            led_orange.set_high();
+        }
+
+        for _ in 0..delay_loops {
+            led_orange.set_low();
+            led_red.set_high();
+        }
+
+        for _ in 0..delay_loops {
+            led_red.set_low();
+            led_blue.set_high();
+        }
+
+        for _ in 0..delay_loops {
+            led_blue.set_low();
+        }
+
+        for _ in 0..5 * delay_loops {
+            led_green.set_high();
+            led_orange.set_high();
+            led_red.set_high();
+            led_blue.set_high();
+        }
+
+        for _ in 0..delay_loops {
+            led_green.set_low();
+            led_orange.set_low();
+            led_red.set_low();
+            led_blue.set_low();
+        }
     }
 }
