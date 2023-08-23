@@ -6,7 +6,7 @@ name: Rust Build
 
 jobs:
   check:
-    name: Checkq
+    name: Check
     runs-on: ubuntu-latest
     steps:
       - name: Checkout sources

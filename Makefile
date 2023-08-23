@@ -62,4 +62,3 @@ probe-target/%_Series.yaml: $(TOOLS_BIN)/target-gen
 clean:
 	cargo clean
 	rm -rf $(TOOLS_BIN) probe-target/*.yaml
-

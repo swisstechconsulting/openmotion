@@ -82,7 +82,7 @@ struct ToolHolder {
     product_id: String,
     link: String,
     vendor: String,
-    type: HolderSize,
+    size: HolderSize,
 }
 
 #[derive(Debug)]
