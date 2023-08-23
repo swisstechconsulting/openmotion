@@ -61,4 +61,4 @@ probe-target/%_Series.yaml: $(TOOLS_BIN)/target-gen
 .PHONY: clean
 clean:
 	cargo clean
-	rm -rf $(TOOLS_BIN) probe-target/*.yaml
+	rm -rf $(TOOLS_BIN) tools/cargo/.crate* target/
