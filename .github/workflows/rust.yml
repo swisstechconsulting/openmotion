@@ -1,8 +1,12 @@
+name: Rust Build
+
 on:
   push:
+    tags:
+      - v*
+    branches:
+      - main
   pull_request:
-
-name: Rust Build
 
 jobs:
   check:
