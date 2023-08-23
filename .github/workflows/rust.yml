@@ -43,7 +43,7 @@ jobs:
       - name: Run cargo test
         uses: actions-rs/cargo@v1
         with:
-          command: test
+          command: test --frozen --locked
 
   lints:
     name: Lints
@@ -55,7 +55,6 @@ jobs:
       - name: Install stable toolchain
         uses: actions-rs/toolchain@v1
         with:
-          target: thumbv7em-none-eabihf
           profile: minimal
           toolchain: stable
           override: true

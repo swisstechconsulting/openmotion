@@ -15,17 +15,23 @@ struct Dimention {
 
 impl Dimention {
     fn angle(degrees: u8) -> Self {
-        Dimention { value: degrees, unit: Unit.Degrees }
+        Dimention {
+            value: degrees,
+            unit: Unit.Degrees,
+        }
     }
 
     fn length(value: u32, unit: Unit::Degrees) -> u8 {
-        Dimention { value: degrees, unit: Unit.Degrees }
+        Dimention {
+            value: degrees,
+            unit: Unit.Degrees,
+        }
     }
 
     fn millimeters(&self) -> u8 {
         self.value
     }
-    
+
     // fn angle()
 }
 
@@ -90,7 +96,7 @@ struct ShaftSlice {
     index: u32,
     upper_diameter: Dimention,
     lower_diameter: Dimention,
-};
+}
 
 enum Coolant {
     Disabled,
@@ -111,7 +117,7 @@ struct Tool {
     vendor: String,
     product_id: String,
     product_link: String,
-    
+
     // Cutter
     mill_type: MillType,
     num_flutes: u8,
@@ -126,7 +132,7 @@ struct Tool {
     flute_length: Dimention,
     corner_radius: length,
     taper_angle: AngleDimention,
-    
+
     // Shaft
     shaft: Vec<ShaftSlice>,
 
