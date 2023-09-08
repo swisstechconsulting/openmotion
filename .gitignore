@@ -36,7 +36,6 @@
 *.x86_64
 *.hex
 target/
-tools/cargo/
 
 # Debug files
 *.dSYM/

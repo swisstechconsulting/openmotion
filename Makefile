@@ -1,6 +1,6 @@
 CHIP_NAME?=STM32F407VGTx
 TARGET?=thumbv7em-none-eabihf
-TOOLS_BIN=tools/cargo/bin
+TOOLS_BIN=target/tools/cargo/bin
 BINARY=openmotion
 
 default: lint test build
@@ -11,26 +11,17 @@ lint:
 	cargo clippy
 
 .PHONY: test
-test:
+test: tools
 	cargo test --target $(TARGET)
 
 .PHONY: build
 build:
 	cargo build --release --target $(TARGET)
-	cargo build --release
 
 .PHONY: run
 run: $(TOOLS_BIN)/probe-rs
 	@echo "Flashing into RAM (debug build)"
 	cargo embed --chip "${CHIP_NAME}"
-
-.PHOZNy: debug
-debug:
-	# https://docs.rust-embedded.org/book/intro/install/macos.html
-	# openocd -f interface/stlink.cfg -f target/stm32f4x.cfg
-	# brew install openocd
-	# brew install qemu
-	openocd -f interface/stlink.cfg -f target/stm32f4x.cfg
 
 .PHONY: flash
 flash: $(TOOLS_BIN)/probe-rs $(TOOLS_BIN)/cargo-binutils
@@ -44,14 +35,14 @@ tools: $(TOOLS_BIN)/probe-rs
 	rustup update
 	rustup component add rustfmt
 	rustup component add clippy
-	
-tools/cargo/%:
-	cargo install --root tools/cargo "$(@F)"
+
+$(TOOLS_BIN)/%:
+	cargo install --root target/tools/cargo "$(@F)"
 
 $(TOOLS_BIN)/probe-rs: $(TOOLS_BIN)/cargo-binutils $(TOOLS_BIN)/cargo-expand
 	rustup component add llvm-tools-preview
 	rustup target add $(TARGET)
-	cargo install --root tools/cargo "$(@F)" --features cli
+	cargo install --root target/tools/cargo "$(@F)" --features cli
 
 # probe-target/STM32F4_Series.yaml
 probe-target/%_Series.yaml: $(TOOLS_BIN)/target-gen
@@ -61,4 +52,4 @@ probe-target/%_Series.yaml: $(TOOLS_BIN)/target-gen
 .PHONY: clean
 clean:
 	cargo clean
-	rm -rf $(TOOLS_BIN) tools/cargo/.crate* target/
+	rm -rf $(TOOLS_BIN) target/
